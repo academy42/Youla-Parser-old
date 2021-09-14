@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pymongo
-from cfg import *
+import logging
+from cfg import db_link, db_collection_name
 
 
 class Storage:
