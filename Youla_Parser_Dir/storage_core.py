@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 import pymongo
 import logging
 from cfg import db_link, db_collection_name
+import datetime
 
 
 class Storage:
@@ -16,15 +16,15 @@ class Storage:
         if type(data_to_write) == dict:
             self.urls.insert_one(data_to_write)
         else:
-            logging.info('[-] Exiting! Type of the data is not a dict!')
+            logging.info('[-] Exiting! Type of the data is not a dict!' + f'{datetime.datetime.now()}')
             exit(1)
 
     def write_data_info(self, info_to_write):
         if type(info_to_write) == dict:
             self.card_info.insert_one(info_to_write)
         else:
-            logging.info('[-] Exiting! Type of the data is not a dict!')
+            logging.info('[-] Exiting! Type of the data is not a dict!' + f'{datetime.datetime.now()}')
             exit(1)
 
     def get_data(self):
-        ...
+        """"Func to get data from database"""

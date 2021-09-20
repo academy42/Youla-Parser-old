@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:latest
 
 RUN mkdir -p /usr/app/
 
@@ -6,9 +6,8 @@ WORKDIR /usr/app/
 
 COPY . /usr/app/
 
-RUN pip install poetry
+RUN pip3 install poetry
 RUN poetry install
 
 
-
-CMD ["python3", "./main.py"]
+CMD ["python3", "main.py"]
