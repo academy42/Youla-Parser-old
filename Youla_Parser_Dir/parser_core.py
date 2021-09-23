@@ -218,47 +218,4 @@ class Parser:
 
         self.__driver.close()
 
-        # splited_link_to_get_id = link.split('-')
-        # link_id = splited_link_to_get_id[-1]
-        #
-        # time.sleep(2)
-        #
-        # page = self.__driver.page_source
-        # soup = BeautifulSoup(page, 'html.parser')
-        #
-        # try:
-        #     get_square_and_rooms = soup.find('h2', class_='sc-fznZeY').text.split(',')
-        # except AttributeError:
-        #     logging.info("the elements haven't loaded yet, trying again" + f'{datetime.datetime.now()}')  # logger
-        #     continue
-        #
-        # values_of_headers = soup.find_all("li", class_='sc-pcYTN')[2].find_all('dd', class_='sc-AxjAm')
-        #
-        # button = self.__driver.find_elements_by_class_name('sc-fzokvW')
-        #
-        # if len(button) == 5:
-        #     button[4].click()
-        # elif len(button) == 7:
-        #     button[5].click()
-        # phone = self.__driver.find_elements_by_tag_name('p')
-        #
-        # for p in phone:
-        #     if re.match("(\W\d{1}) (\W\d{3}\W) (\d{3})-(\d{2})-(\d{2})", f'{p.text}'):
-        #         phone_num = p.text
-        #
-        #         logging.info('Writing parsed phone number to the list of a number' + f'{datetime.datetime.now()}')
-        #
-        # info = {
-        #     'id': f'{link_id}',
-        #     'square': f'{get_square_and_rooms[2].strip(" ")}',
-        #     'rooms': f'{get_square_and_rooms[1].strip(" ")}',
-        #     'kitchen_square': f'{values_of_headers[1].text}',
-        #     'floor': f'{values_of_headers[2].text}',
-        #     'phone': f'{phone_num}'
-        # }
-        #
-        # self.storage.write_data_info(info)
-        #
-        # logging.info('Got an info from site' + f'{datetime.datetime.now()}')
-        # logging.info("Writing information to the MongoDB" + f'{datetime.datetime.now()}')
 
