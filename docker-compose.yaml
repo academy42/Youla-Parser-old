@@ -18,8 +18,8 @@ services:
       - JAVA_OPTS=-Dwebdriver.firefox.whitelistedIps=
       - HUB_HOST=selenium-hub
       - HUB_PORT=4444
-      - NODE_MAX_INSTANCES=50
-      - NODE_MAX_SESSION=50
+      - NODE_MAX_INSTANCES=40
+      - NODE_MAX_SESSION=40
 
   mongodb:
     image: mongo:latest
