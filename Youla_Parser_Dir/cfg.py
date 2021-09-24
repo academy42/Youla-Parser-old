@@ -1,30 +1,35 @@
 import logging
+import os
+
 from selenium.webdriver import FirefoxOptions
 
-PATH = 'https://youla.ru'
 
-ADDITIONAL_URL = '/moskva/nedvijimost'
+class ApplicationSettings:
+    HOST_STORAGE: str = os.environ.get('HOST_STORAGE')
 
-HUB_HOST = 'selenium-hub'
-MONGO_HOST = 'localhost'
+    PORT_STORAGE: int = os.environ.get("PORT_STORAGE")
 
-headers = {
-    'user-agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 Edg/93.0.961.47',
-    'Referer': 'https://youla.ru/'
-}
+    HUB_HOST: str = os.environ.get("HUB_HOST", '0.0.0.0')
 
-db_link = f"mongodb://{MONGO_HOST}:27017/"
+    class Config:
+        env_file = '.env'
+        loger = logging.basicConfig(filename="logs.log", level=logging.INFO)
+        PATH = 'https://youla.ru'
 
-db_collection_name = "Parser_Data"
+        ADDITIONAL_URL = '/moskva/nedvijimost'
 
-logging.basicConfig(filename="logs.log", level=logging.INFO)
+        headers = {
+            'user-agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 Edg/93.0.961.47',
+            'Referer': 'https://youla.ru/'
+        }
 
-firefox_options = FirefoxOptions()
-firefox_options.add_argument('--no-sandbox')
-firefox_options.add_argument('window-size=1200x600')
-firefox_options.add_argument('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"')
+        db_collection_name = "Parser_Data"
 
-attribute_dict = {
+        firefox_options = FirefoxOptions()
+        firefox_options.add_argument('--no-sandbox')
+        firefox_options.add_argument('window-size=1200x600')
+
+        attribute_dict = {
             "tip_sdelki": "task",
             "name": "name",
             "description": "text",
@@ -43,3 +48,6 @@ attribute_dict = {
             "lift": "cargoLift",
             "realty_god_postroyki": "buildYear",
         }
+
+
+settings = ApplicationSettings()

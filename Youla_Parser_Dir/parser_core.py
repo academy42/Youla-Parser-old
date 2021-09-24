@@ -1,9 +1,10 @@
 import datetime
+import logging
 import time
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import WebDriverException
-from cfg import headers, PATH, ADDITIONAL_URL, logging, attribute_dict, HUB_HOST
+from cfg import settings
 from typing import List
 from storage_core import Storage
 from selenium.common.exceptions import StaleElementReferenceException
@@ -16,11 +17,13 @@ import json
 class Parser:
     def __init__(self):
         self.__how_many_attempts = 2
-        self.__driver = webdriver.Remote(command_executor=f"http://{HUB_HOST}:4444/wd/hub",
-                                         desired_capabilities={"browserName": "firefox", "javascriptEnabled": True})
-        # self.__driver = webdriver.Firefox(executable_path='geckodriver.exe', options=firefox_options)
-        self.headers = headers
-        self.url = PATH + ADDITIONAL_URL
+        print(settings.HUB_HOST)
+        self.__driver = webdriver.Remote(command_executor=f"http://selenium-hub:4444/wd/hub",
+                                         desired_capabilities={"browserName": "firefox", "javascriptEnabled": True},
+                                         keep_alive=True,
+                                         options=settings.Config.firefox_options)
+        self.headers = settings.Config.headers
+        self.url = settings.Config.PATH + settings.Config.ADDITIONAL_URL
         self.storage = Storage()
         logging.info('Class parser has been inited' + f'{datetime.datetime.now()}')
 
@@ -31,13 +34,10 @@ class Parser:
             self.__driver.get(url=url_to_parse)
             self.__how_many_attempts -= 1
         while True:
-            # Scroll down to bottom
             self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-            # Wait to load page
             time.sleep(5)
 
-            # Calculate new scroll height and compare with last scroll height
             new_height = self.__driver.execute_script("return document.body.scrollHeight")
             if new_height == last_height:
                 break
@@ -57,7 +57,7 @@ class Parser:
         elements = link_parser_soup.find_all('li', class_='product_item')
 
         for e in elements:
-            links_list.append(PATH + e.find_next('a')['href'])
+            links_list.append(settings.Config.PATH + e.find_next('a')['href'])
 
         _links = {
             'urls': f'{links_list}'
@@ -75,17 +75,13 @@ class Parser:
         links_of_cards = self.get_urls_of_cards()
 
         for link in links_of_cards:
-
-            phone_num = None
             try:
                 self.__driver.get(url=link)
                 logging.info('Перехожу по ссылке на карточку объекта.')
-                page = self.__driver.page_source
-                soup2 = BeautifulSoup(page, 'html.parser')
             except WebDriverException:
                 links_of_cards.remove(link)
                 logging.info(
-                    'Redirecting to promo-url, deleting this url from list of urls' + f'{datetime.datetime.now()}')  # logger
+                    'Redirecting to promo-url, deleting this url from list of urls' + f'{datetime.datetime.now()}')
                 continue
             js = '__YOULA_STATE__.entities.products[0]'
             res = self.__driver.execute_script(f'return {js}')
@@ -93,7 +89,7 @@ class Parser:
                 "url": link,
                 "id": hashlib.md5(link.encode('utf-8')).hexdigest()
             }
-            ad_dict = {}
+            ad_dict = dict()
             ad_dict["forum_id"] = 1
             ad_dict["phone"] = ''
             ad_dict["idCountry"] = -1
@@ -107,7 +103,7 @@ class Parser:
                 for i in ["id", "name", "description", "location", "price", "images"]:
                     if i in res.keys():
                         if i == "name":
-                            ad_dict[attribute_dict[i]] = res[i]
+                            ad_dict[settings.Config.attribute_dict[i]] = res[i]
                             if "Квартира" in res[i]:
                                 ad_dict["type"] = 1
                             elif "Комната" in res[i]:
@@ -121,12 +117,12 @@ class Parser:
                             else:
                                 ad_dict["type"] = 0
                         elif i == "description":
-                            ad_dict[attribute_dict[i]] = res[i]
+                            ad_dict[settings.Config.attribute_dict[i]] = res[i]
                         elif i == "location":
                             ad_dict["latitude"] = res[i]["latitude"]
                             ad_dict["longitude"] = res[i]["longitude"]
                         elif i == "price":
-                            ad_dict[attribute_dict[i]] = res[i] // 100
+                            ad_dict[settings.Config.attribute_dict[i]] = res[i] // 100
                         elif i == "images":
                             ad_dict["images"] = ";".join([i['url'] for i in res[i]])
             except TypeError as tp:
@@ -136,63 +132,63 @@ class Parser:
 
             for i in res['attributes']:
                 attr_name = i['slug']
-                if attr_name in attribute_dict.keys():
+                if attr_name in settings.Config.attribute_dict.keys():
                     if attr_name in ["realty_obshaya_ploshad", "realty_ploshad_kuhni"]:
-                        ad_dict[attribute_dict[attr_name]] = int(i['rawValue']) // 100
+                        ad_dict[settings.Config.attribute_dict[attr_name]] = int(i['rawValue']) // 100
 
                     elif attr_name in ["realty_etaj", "realty_etajnost_doma"]:
-                        ad_dict[attribute_dict[attr_name]] = int(i['rawValue'])
+                        ad_dict[settings.Config.attribute_dict[attr_name]] = int(i['rawValue'])
 
                     elif attr_name == "sobstvennik_ili_agent":
-                        ad_dict[attribute_dict[attr_name]] = (0 if i['rawValue'] == 'Собственник' else 1)
+                        ad_dict[settings.Config.attribute_dict[attr_name]] = (0 if i['rawValue'] == 'Собственник' else 1)
 
                     elif attr_name == "tip_sdelki":
                         if i['rawValue'] == "Продажа":
-                            ad_dict[attribute_dict[attr_name]] = 1
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 1
                         elif i['rawValue'] == "Аренда":
-                            ad_dict[attribute_dict[attr_name]] = 2
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 2
                         else:
-                            ad_dict[attribute_dict[attr_name]] = 0
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 0
 
                     elif attr_name == "realty_building_type":
                         if i['rawValue'] == "Новостройка":
-                            ad_dict[attribute_dict[attr_name]] = 1
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 1
                         elif i['rawValue'] == "Вторичка":
-                            ad_dict[attribute_dict[attr_name]] = 2
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 2
                         else:
-                            ad_dict[attribute_dict[attr_name]] = 0
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 0
 
                     elif attr_name in ["holodilnik", "posudomoechnaya_mashina"]:
                         if i["rawValue"] == "Есть":
-                            ad_dict[attribute_dict[attr_name]] = 1
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 1
                         else:
-                            ad_dict[attribute_dict[attr_name]] = 0
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 0
 
                     elif attr_name == "remont":
                         if i["rawValue"] == "Без отделки":
-                            ad_dict[attribute_dict[attr_name]] = 1
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 1
                         elif i["rawValue"] == "Чистовая отделка":
-                            ad_dict[attribute_dict[attr_name]] = 2
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 2
                         elif i["rawValue"] == "Муниципальный ремонт":
-                            ad_dict[attribute_dict[attr_name]] = 3
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 3
                         elif i["rawValue"] == "Хороший ремонт":
-                            ad_dict[attribute_dict[attr_name]] = 4
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 4
                         elif i["rawValue"] == "Евроремонт":
-                            ad_dict[attribute_dict[attr_name]] = 5
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 5
                         elif i["rawValue"] == "Эксклюзивный":
-                            ad_dict[attribute_dict[attr_name]] = 6
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 6
                         else:
-                            ad_dict[attribute_dict[attr_name]] = 0
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 0
                     elif attr_name == "lift":
                         if i['rawValue'] in ["Легковой и грузовой", "Грузовой", "Легковой"]:
-                            ad_dict[attribute_dict[attr_name]] = 1
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 1
                         else:
-                            ad_dict[attribute_dict[attr_name]] = 0
+                            ad_dict[settings.Config.attribute_dict[attr_name]] = 0
 
                     elif attr_name == "realty_god_postroyki":
-                        ad_dict[attribute_dict[attr_name]] = int(i['rawValue'])
+                        ad_dict[settings.Config.attribute_dict[attr_name]] = int(i['rawValue'])
                     elif attr_name == "realty_hidden_location":
-                        ad_dict[attribute_dict[attr_name]] = i['rawValue']
+                        ad_dict[settings.Config.attribute_dict[attr_name]] = i['rawValue']
             # values_of_headers = soup2.find_all("li", class_='sc-pcYTN')[2].find_all('dd', class_='sc-AxjAm')
 
             button = self.__driver.find_elements_by_class_name('sc-fzokvW')
@@ -202,7 +198,7 @@ class Parser:
             elif len(button) == 7:
                 button[5].click()
 
-                phone = self.__driver.find_elements_by_tag_name('p')
+            phone = self.__driver.find_elements_by_tag_name('p')
 
             try:
                 for p in phone:

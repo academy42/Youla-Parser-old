@@ -8,7 +8,7 @@ services:
       - "4444:4444"
 
   firefox:
-    image: selenium/node-firefox:3.141.59-20210830
+    image: selenium/node-firefox
     container_name: firefox
     volumes:
       - /dev/shm:/dev/shm
@@ -18,8 +18,8 @@ services:
       - JAVA_OPTS=-Dwebdriver.firefox.whitelistedIps=
       - HUB_HOST=selenium-hub
       - HUB_PORT=4444
-      - NODE_MAX_INSTANCES=40
-      - NODE_MAX_SESSION=40
+      - NODE_MAX_INSTANCES=60
+      - NODE_MAX_SESSION=60
 
   mongodb:
     image: mongo:latest
@@ -29,7 +29,7 @@ services:
     restart: always
 
   parser:
-    build: Youla_Parser_Dir/
+    build: "Youla_Parser_Dir/"
     container_name: parser
     depends_on:
       - selenium-hub
@@ -37,4 +37,4 @@ services:
       - mongodb
     environment:
       - HUB_HOST=selenium-hub
-      - MONGO_HOST=mongodb
+      - HOST_STORAGE=mongodb
