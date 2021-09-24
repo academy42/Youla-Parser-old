@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+import datetime
+import logging
 from parser_core import Parser
-import logging, datetime
 
 
 class Application:
@@ -10,10 +10,10 @@ class Application:
 
     def run(self):
         """Функция запуска приложенич"""
-
         self.parser.parse_cards_info()
 
-    def stop(self):
+    @staticmethod
+    def stop() -> None:
         """Функия остановки всех процессов и функция приложения"""
-        self.parser.driver.close()
-
+        logging.info('[!]Switching off....')
+        exit(0)
